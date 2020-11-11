@@ -72,13 +72,14 @@ int main(int argc, char *argv[])
 
     Kokkos::ScopeGuard kokkos(argc, argv);
 
-    edm::MutableDataset dataset("dataset", L, N);
+    edm::MutableDataset input("input", L, N);
+    edm::MutableDataset output("output", L, N);
 
     Kokkos::Random_XorShift64_Pool<> rand_pool(1931);
-    Kokkos::fill_random(dataset, rand_pool, 1.0);
+    Kokkos::fill_random(input, rand_pool, 1.0);
 
-    edm::TimeSeries library(dataset, Kokkos::ALL, 0);
-    edm::TimeSeries target(dataset, Kokkos::ALL, 0);
+    edm::TimeSeries library(input, Kokkos::ALL, 0);
+    edm::TimeSeries target(input, Kokkos::ALL, 0);
 
     edm::TmpDistances tmp("tmp_distances", L, L);
     edm::LUT lut(L - (E - 1) * tau, E + 1);
@@ -113,7 +114,8 @@ int main(int argc, char *argv[])
             LIKWID_MARKER_START("lookup");
         }
 
-        edm::_xmap(ccm, dataset, lut, targets, E, tau, Tp);
+        // edm::_xmap(ccm, input, lut, targets, E, tau, Tp);
+        edm::lookup(output, input, lut, targets, E);
 
         Kokkos::fence();
 
